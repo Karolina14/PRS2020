@@ -39,7 +39,9 @@ public class Filters {
 
     public void filterStudentsWhichNamesAndSurnamesStartWithDifferentLetter() {
         log.info("Students that have first name and last name with different letter");
-        //ToDo
+        students.stream()
+                .filter(student -> student.getName().startsWith(student.getSurname().substring(0,1)))
+                .forEach(s -> log.info(s.getName() + " " + s.getSurname()));
     }
 
     public void filterStudentsThatFailTest() {

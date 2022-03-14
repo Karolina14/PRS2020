@@ -10,7 +10,7 @@ public class DebugExample {
 
         int silnia = 1;
 
-        for(int i = 0;i<15;i++ ) {
+        for(int i = 1;i<15;i++ ) {
             silnia = i*silnia;
         }
 

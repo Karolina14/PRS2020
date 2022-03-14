@@ -23,6 +23,6 @@ public class StreamsExample {
         IntStream.range(1, 10).forEach(num -> lista.add(num));
         lista.stream().forEach(num -> log.info(num));
 
-        //whatIsIt = lista.stream();
+//        whatIsIt = lista.stream();
     }
 }

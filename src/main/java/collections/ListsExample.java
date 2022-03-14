@@ -17,7 +17,7 @@ public class ListsExample {
         List<Long> lista = new ArrayList<>();
         List<Long> lista2 = new LinkedList<>();
         ArrayList<Long> lista3 = new ArrayList<>();
-        ArrayList<Long> lista4 = new ArrayList<Long>();
+        ArrayList<Long> lista4 = new ArrayList<>();
 
         // wybierz by zobaczyć listę możliwych metod
         // lista.
