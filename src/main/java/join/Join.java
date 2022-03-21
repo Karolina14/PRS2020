@@ -49,6 +49,9 @@ public class Join {
 
         thread2.start();
         thread3.start();
+        thread2.join();
+        thread3.join();
+
 
         log.info("Main ended:" + Thread.currentThread().getName());
     }

@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -44,9 +45,9 @@ public class WaitNotifyMultiprocess {
     private static void consumerThread(ProducerConsumerMultiprocess producer) {
         try {
             boolean output = true;
-            while(output) {
+            while (output) {
                 output = producer.consume();
-                Thread.sleep( 500);
+                Thread.sleep(500);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -54,10 +55,10 @@ public class WaitNotifyMultiprocess {
     }
 
     private static void producerThread(ProducerConsumerMultiprocess producer) {
-        IntStream.rangeClosed(1, 1000).forEach(num -> {
+        IntStream.rangeClosed(1, 100).forEach(num -> {
                 Random r = new Random();
                 try {
-                    Thread.sleep(r.nextInt() % 2000);
+                    Thread.sleep(Math.abs(r.nextInt() % 2000));
                     producer.produce(r.nextInt());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -81,19 +82,33 @@ class ProducerConsumerMultiprocess {
     }
 
     public void produce(Integer num) throws InterruptedException {
-        synchronized (this) {
-            logger.info("Start produce " + num);
-            queue.add(num);
-            logger.info("Finish produce");
-        }
+        lock.lock();
+        logger.info("Start produce " + num);
+        queue.add(num);
+        condition.signalAll();
+        logger.info("Finish produce " + num);
+        lock.unlock();
     }
 
     public boolean consume() throws InterruptedException {
-        synchronized (this) {
-            logger.info("Start consume");
-            Integer num = queue.poll();
-            logger.info("Finish consume " + num);
-            return queue.size() == 0;
+        logger.info("Start consume");
+        lock.lock();
+        boolean goOn = queue.size() == 0 && Thread.activeCount()>4;
+        while (goOn) {
+            condition.await();
+            goOn = queue.size() == 0 && Thread.activeCount()>4;
         }
+        if(queue.size()>0) {
+            Integer num = queue.poll();
+            logger.info("Finish consume " + num + " " + Thread.activeCount());
+            lock.unlock();
+            return true;
+        }
+        else if(Thread.activeCount()<5){
+            logger.info("Finish consume END "+Thread.activeCount());
+            lock.unlock();
+            return false;
+        }
+        return true;
     }
 }

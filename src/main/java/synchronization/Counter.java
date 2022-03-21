@@ -44,16 +44,16 @@ class CounterThread {
         this.number = number;
     }
 
-    public void increment() {
+    public synchronized void increment() {
         number++;
     }
 
 
-    public void decrement() {
+    public synchronized void decrement() {
         number--;
     }
 
-    public Integer getNumber() {
+    public synchronized Integer getNumber() {
         return number;
     }
 }
