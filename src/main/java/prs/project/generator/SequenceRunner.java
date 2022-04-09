@@ -205,7 +205,7 @@ public class SequenceRunner {
             akcja.getGrupaProduktów().entrySet().stream()
                     .forEach(produkt -> {
                         Long naMagazynie = magazyn.getStanMagazynowy().get(produkt.getKey());
-                        if(magazyn.getStanMagazynowy().get(akcja.getProduct()) >= 0) {
+                        if(magazyn.getStanMagazynowy().get(produkt.getKey()) >= 0) {
                             magazyn.getStanMagazynowy().put(produkt.getKey(), naMagazynie + produkt.getValue());
                         }
                     });
