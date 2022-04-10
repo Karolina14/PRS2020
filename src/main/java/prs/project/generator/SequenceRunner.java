@@ -119,10 +119,10 @@ public class SequenceRunner {
         }
 
         if (WydarzeniaAkcje.RAPORT_SPRZEDAŻY.equals(akcja.getTyp())) {
-            odpowiedz.setRaportSprzedaży(sprzedaz);
+            odpowiedz.setRaportSprzedaży(sprzedaz.clone());
         }
         if (WydarzeniaAkcje.INWENTARYZACJA.equals(akcja.getTyp())) {
-            odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy());
+            odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy().clone());
         }
         if (WydarzeniaAkcje.WYCOFANIE.equals(akcja.getTyp())) {
             magazyn.getStanMagazynowy().put(akcja.getProduct(), -9999999L);

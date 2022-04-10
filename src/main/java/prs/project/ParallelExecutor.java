@@ -136,7 +136,7 @@ public class ParallelExecutor {
         if (WydarzeniaAkcje.RAPORT_SPRZEDAŻY.equals(akcja.getTyp())) {
             sprzedazLock.lock();
             kolejkaLock.unlock();
-            odpowiedz.setRaportSprzedaży(sprzedaz);
+            odpowiedz.setRaportSprzedaży(sprzedaz.clone());
             sprzedazLock.unlock();
         }
 
@@ -157,7 +157,6 @@ public class ParallelExecutor {
             magazynLock.unlock();
             sprzedazLock.unlock();
         }
-
         if (ZamowieniaAkcje.REZERWACJA.equals(akcja.getTyp())) {
             odpowiedz.setProdukt(akcja.getProduct());
             odpowiedz.setLiczba(akcja.getLiczba());
@@ -202,7 +201,6 @@ public class ParallelExecutor {
             }
             magazynLock.unlock();
         }
-
         if (SterowanieAkcja.ZAMKNIJ_SKLEP.equals(akcja.getTyp())) {
             kolejkaLock.unlock();
             odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy());
@@ -224,7 +222,7 @@ public class ParallelExecutor {
         post.setHeader("Content-type", "application/json");
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault();
-             CloseableHttpResponse response = httpClient.execute(post)) {
+                CloseableHttpResponse response = httpClient.execute(post)) {
 
             HttpEntity rEntity = response.getEntity();
             if (rEntity != null) {

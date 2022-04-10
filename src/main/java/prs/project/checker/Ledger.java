@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
@@ -34,8 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @NoArgsConstructor
 public class Ledger {
 
-    ConcurrentHashMap<Long, ArrayList<Akcja>> actions = new ConcurrentHashMap<>();
-    ConcurrentHashMap<Long, ArrayList<ReplyToAction>> logActions = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Long, ConcurrentLinkedQueue<Akcja>> actions = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Long, ConcurrentLinkedQueue<ReplyToAction>> logActions = new ConcurrentHashMap<>();
     ArrayList<ReplyToAction> pattern = new ArrayList<>();
     ConcurrentHashMap<Long, Warehouse> warehouses = new ConcurrentHashMap<>();
     ConcurrentHashMap<Long, Set<Enum>> types = new ConcurrentHashMap<>();
@@ -43,12 +44,12 @@ public class Ledger {
     public void addReply(ReplyToAction odpowiedz) throws InterruptedException {
         if (!logActions.containsKey(odpowiedz.getStudentId())) {
 
-            logActions.put(odpowiedz.getStudentId(), new ArrayList<>());
+            logActions.put(odpowiedz.getStudentId(), new ConcurrentLinkedQueue<>());
 
         }
 
         odpowiedz.setTimestamp(LocalDateTime.now());
-        ArrayList<ReplyToAction> list = logActions.get(odpowiedz.getStudentId());
+        ConcurrentLinkedQueue<ReplyToAction> list = logActions.get(odpowiedz.getStudentId());
         list.add(odpowiedz);
 
         Thread.sleep(100);
@@ -84,7 +85,7 @@ public class Ledger {
         List<ReplyToAction> raportyOdpowiedzi = pattern.stream().filter(m -> m.getTyp().equals(WydarzeniaAkcje.RAPORT_SPRZEDAŻY))
                 .sorted(Comparator.comparing(ReplyToAction::getId)).collect(Collectors.toList());
 
-        long czasStudent = Duration.between(logActions.get(indeks).get(0).getTimestamp(), logActions.get(indeks).get(logActions.get(indeks).size() - 1).getTimestamp())
+        long czasStudent = Duration.between(logActions.get(indeks).peek().getTimestamp(), logActions.get(indeks).stream().collect(Collectors.toList()).get(logActions.get(indeks).size() - 1).getTimestamp())
                 .toSeconds();
         long liczbaAkceptacjiStudent = logActions.get(indeks).stream().filter(m -> Boolean.TRUE.equals(m.getZrealizowaneZamowienie())).count();
         long liczbaNieakceptacjiStudent = logActions.get(indeks).stream().filter(m ->

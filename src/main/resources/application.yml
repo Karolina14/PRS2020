@@ -1,7 +1,5 @@
-spring:
-  redis:
-    host: localhost
-    port: 8989
+server:
+  port : 8081
 
 ustawienia:
   numerIndeksu: 461013
