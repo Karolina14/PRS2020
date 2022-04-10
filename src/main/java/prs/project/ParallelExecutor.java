@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
@@ -59,6 +60,9 @@ public class ParallelExecutor {
     ReentrantLock kolejkaLock = new ReentrantLock();
     ReentrantLock sprzedazLock = new ReentrantLock();
     ReentrantLock rezerwacjeLock = new ReentrantLock();
+    ConcurrentLinkedDeque<ReplyToAction> replies = new ConcurrentLinkedDeque<>();
+    ReentrantLock odpowiedzLock = new ReentrantLock();
+    Condition odpowiedzCondition = odpowiedzLock.newCondition();
 
 
     public ParallelExecutor(Settings settings, List<Akcja> akcje) {
@@ -86,6 +90,27 @@ public class ParallelExecutor {
             }
         });
         thread2.start();
+        Thread thread3 = new Thread(() ->
+        {
+            while (active) {
+                threadProcess();
+            }
+        });
+        thread3.start();
+        Thread thread4 = new Thread(() ->
+        {
+            while (active) {
+                threadProcess();
+            }
+        });
+        thread4.start();
+        Thread thread5 = new Thread(() ->
+        {
+            while (active) {
+                threadProcess();
+            }
+        });
+        thread5.start();
     }
 
     public void process(Akcja jednaAkcja) {
@@ -105,7 +130,22 @@ public class ParallelExecutor {
         if (akcja != null) {
             ReplyToAction odpowiedz = procesujAkcje(akcja);
             try {
-                wyslijOdpowiedzLokalnie(odpowiedz);
+                odpowiedzLock.lock();
+
+                while (replies.peekFirst() == null ||
+                        (replies.peekFirst().getId()==null &&
+                                replies.peekFirst().getTyp() != SterowanieAkcja.ZAMKNIJ_SKLEP) ||
+                        (replies.peekFirst().getTyp() == SterowanieAkcja.ZAMKNIJ_SKLEP && replies.size()>1)){
+                    odpowiedzCondition.await();
+                }
+                ReplyToAction odp = replies.pollFirst();
+                wyslijOdpowiedzLokalnie(odp);
+                odpowiedzCondition.signalAll();
+                odpowiedzLock.unlock();
+
+                Thread.sleep(100);
+
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -118,19 +158,14 @@ public class ParallelExecutor {
         log.info("Procesuje " + akcja.getTyp());
         ReplyToAction odpowiedz = ReplyToAction.builder()
                 .typ(akcja.getTyp())
-                .id(akcja.getId())
                 .build();
+        replies.add(odpowiedz);
 
         if (WycenaAkcje.PODAJ_CENE.equals(akcja.getTyp())) {
             kolejkaLock.unlock();
 //            Brak locka, cena niezmienna
             odpowiedz.setProdukt(akcja.getProduct());
             odpowiedz.setCena(magazyn.getCeny().get(akcja.getProduct()));
-            if (mojeTypy.contains(Wycena.PROMO_CO_10_WYCEN)) {
-                promoLicznik++;
-                if (promoLicznik == 10)
-                    odpowiedz.setCena(0L);
-            }
         }
 
         if (WydarzeniaAkcje.RAPORT_SPRZEDAŻY.equals(akcja.getTyp())) {
@@ -206,6 +241,11 @@ public class ParallelExecutor {
             odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy());
             odpowiedz.setGrupaProduktów(magazyn.getCeny());
         }
+        odpowiedzLock.lock();
+        log.info(String.valueOf(akcja.getId()));
+        odpowiedz.setId(akcja.getId());
+        odpowiedzCondition.signalAll();
+        odpowiedzLock.unlock();
         return odpowiedz;
     }
 

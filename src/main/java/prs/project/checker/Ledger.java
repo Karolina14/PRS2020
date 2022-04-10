@@ -51,9 +51,6 @@ public class Ledger {
         odpowiedz.setTimestamp(LocalDateTime.now());
         ConcurrentLinkedQueue<ReplyToAction> list = logActions.get(odpowiedz.getStudentId());
         list.add(odpowiedz);
-
-        Thread.sleep(100);
-
     }
 
     public void addReplySequencer(ReplyToAction odpowiedz) throws InterruptedException {
@@ -107,7 +104,7 @@ public class Ledger {
         List<ReplyToAction> raportyOdpowiedziStudent = logActions.get(indeks).stream()
                 .filter(m -> m.getTyp().equals(WydarzeniaAkcje.RAPORT_SPRZEDAŻY))
                 .sorted(Comparator.comparing(ReplyToAction::getId)).collect(Collectors.toList());
-
+        log.info("Czas student {} ; czas {}",Long.toString(czasStudent),Long.toString(czas));
         assertThat(czasStudent).as("Twój program nie dziala krocej").isLessThan(czas);
         assertThat(liczbaAkceptacjiStudent).as("Twój program zaakceptowal/odrzucil (nie)poprawne zakupy").isEqualTo(liczbaAkceptacji);
         assertThat(liczbaNieakceptacjiStudent).as("Twój program odrzucil/nie odrzucil niepoprawnych zakupow").isEqualTo(liczbaNieakceptacji);
