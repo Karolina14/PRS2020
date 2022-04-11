@@ -216,8 +216,8 @@ public class ParallelExecutor {
             magazynLock.unlock();
         }
         if (SterowanieAkcja.ZAMKNIJ_SKLEP.equals(akcja.getTyp())) {
-            kolejkaLock.unlock();
             magazynLock.lock();
+            kolejkaLock.unlock();
             odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy());
             odpowiedz.setGrupaProduktów(magazyn.getCeny());
             magazynLock.unlock();
