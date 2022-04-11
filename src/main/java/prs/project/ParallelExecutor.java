@@ -86,6 +86,20 @@ public class ParallelExecutor {
             }
         });
         thread2.start();
+        Thread thread3 = new Thread(() ->
+        {
+            while (active) {
+                threadProcess();
+            }
+        });
+        thread3.start();
+        Thread thread4 = new Thread(() ->
+        {
+            while (active) {
+                threadProcess();
+            }
+        });
+        thread4.start();
     }
 
     public void process(Akcja jednaAkcja) {
@@ -203,8 +217,10 @@ public class ParallelExecutor {
         }
         if (SterowanieAkcja.ZAMKNIJ_SKLEP.equals(akcja.getTyp())) {
             kolejkaLock.unlock();
+            magazynLock.lock();
             odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy());
             odpowiedz.setGrupaProduktów(magazyn.getCeny());
+            magazynLock.unlock();
         }
         return odpowiedz;
     }
